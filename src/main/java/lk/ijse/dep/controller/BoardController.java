@@ -16,6 +16,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import lk.ijse.dep.service.*;
 
+import static lk.ijse.dep.service.Piece.EMPTY;
+
 public class BoardController implements BoardUI {
 
     private static final int RADIUS = 42;
@@ -54,43 +56,44 @@ public class BoardController implements BoardUI {
 
     @Override
     public void update(int col, boolean isHuman) {
-        if (isGameOver) return;
-        VBox vCol = (VBox) grpCols.lookup("#col" + col);
-        if (vCol.getChildren().size() == 5)
-            throw new RuntimeException("Double check your logic, no space available within the column: " + col);
-        if (!isHuman) {
-            vCol.getStyleClass().add("col-ai");
-        }
-        Circle circle = new Circle(RADIUS);
-        circle.getStyleClass().add(isHuman ? "circle-human" : "circle-ai");
-        vCol.getChildren().add(0, circle);
-        if (vCol.getChildren().size() == 5) vCol.getStyleClass().add("col-filled");
-        TranslateTransition tt = new TranslateTransition(Duration.millis(250), circle);
-        tt.setFromY(-50);
-        tt.setToY(circle.getLayoutY());
-        tt.playFromStart();
-        lblStatus.getStyleClass().clear();
-        lblStatus.getStyleClass().add(isHuman ? "ai" : "human");
-        if (isHuman) {
-            isAiPlaying = true;
-            grpCols.getChildren().stream().map(n -> (VBox) n).forEach(vbox -> vbox.getStyleClass().remove("col-human"));
-            KeyFrame delayFrame = new KeyFrame(Duration.millis(300), actionEvent -> {
-                if (!isGameOver) lblStatus.setText("Wait, AI is playing");
-            });
-            KeyFrame keyFrame = new KeyFrame(Duration.seconds(0.5), actionEvent -> {
-                if (!isGameOver) aiPlayer.movePiece(-1);
-            });
-            new Timeline(delayFrame, keyFrame).playFromStart();
-        } else {
-            KeyFrame delayFrame = new KeyFrame(Duration.millis(300), actionEvent -> {
-                grpCols.getChildren().stream().map(n -> (VBox) n).forEach(vbox -> {
-                    vbox.getStyleClass().remove("col-ai");
-                    vbox.getStyleClass().add("col-human");
+        if (!isGameOver) {
+            VBox vCol = (VBox) grpCols.lookup("#col" + col);
+            if (vCol.getChildren().size() == 5)
+                throw new RuntimeException("Double check your logic, no space available within the column: " + col);
+            if (!isHuman) {
+                vCol.getStyleClass().add("col-ai");
+            }
+            Circle circle = new Circle(RADIUS);
+            circle.getStyleClass().add(isHuman ? "circle-human" : "circle-ai");
+            vCol.getChildren().add(0, circle);
+            if (vCol.getChildren().size() == 5) vCol.getStyleClass().add("col-filled");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(250), circle);
+            tt.setFromY(-50);
+            tt.setToY(circle.getLayoutY());
+            tt.playFromStart();
+            lblStatus.getStyleClass().clear();
+            lblStatus.getStyleClass().add(isHuman ? "ai" : "human");
+            if (isHuman) {
+                isAiPlaying = true;
+                grpCols.getChildren().stream().map(n -> (VBox) n).forEach(vbox -> vbox.getStyleClass().remove("col-human"));
+                KeyFrame delayFrame = new KeyFrame(Duration.millis(300), actionEvent -> {
+                    if (!isGameOver) lblStatus.setText("Wait, AI is playing");
                 });
-            });
-            new Timeline(delayFrame).playFromStart();
-            isAiPlaying = false;
-            lblStatus.setText(playerName + ", it is your turn now!");
+                KeyFrame keyFrame = new KeyFrame(Duration.seconds(0.5), actionEvent -> {
+                    if (!isGameOver) aiPlayer.movePiece(-1);
+                });
+                new Timeline(delayFrame, keyFrame).playFromStart();
+            } else {
+                KeyFrame delayFrame = new KeyFrame(Duration.millis(300), actionEvent -> {
+                    grpCols.getChildren().stream().map(n -> (VBox) n).forEach(vbox -> {
+                        vbox.getStyleClass().remove("col-ai");
+                        vbox.getStyleClass().add("col-human");
+                    });
+                });
+                new Timeline(delayFrame).playFromStart();
+                isAiPlaying = false;
+                lblStatus.setText(playerName + ", it is your turn now!");
+            }
         }
     }
 
